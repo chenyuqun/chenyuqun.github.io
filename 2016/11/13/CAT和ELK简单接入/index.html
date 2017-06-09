@@ -1,0 +1,871 @@
+<!doctype html>
+
+
+
+  
+
+
+<html class="theme-next mist use-motion" lang="zh-Hans">
+<head>
+  <meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+
+
+
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css" />
+
+
+
+
+  
+  
+  
+  
+
+  
+    
+    
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+    
+    
+    <link href="//fonts.googleapis.com/css?family=Lato:300,300italic,400,400italic,700,700italic&subset=latin,latin-ext" rel="stylesheet" type="text/css">
+  
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css" />
+
+<link href="/css/main.css?v=5.1.1" rel="stylesheet" type="text/css" />
+
+
+  <meta name="keywords" content="CAT,Elasticsearch,Logstash,Kibana,Big Data," />
+
+
+
+
+
+
+
+
+  <link rel="shortcut icon" type="image/x-icon" href="/favicon.ico?v=5.1.1" />
+
+
+
+
+
+
+<meta name="description" content="CAT监控参考 CAT(Central Application Tracking)是基于Java开发的实时应用监控平台 参考源代码 部署 C#客户端  CAT支持的监控消息类型包括： Transaction        适合记录跨越系统边界的程序访问行为,比如远程调用，数据库调用，也适合执行时间较长的业务逻辑监控，Transaction用来记录一段代码的执行时间和次数。 Event">
+<meta name="keywords" content="CAT,Elasticsearch,Logstash,Kibana,Big Data">
+<meta property="og:type" content="article">
+<meta property="og:title" content="CAT和ELK简单接入">
+<meta property="og:url" content="https://chenyuqun.github.io/2016/11/13/CAT和ELK简单接入/index.html">
+<meta property="og:site_name" content="大自在天">
+<meta property="og:description" content="CAT监控参考 CAT(Central Application Tracking)是基于Java开发的实时应用监控平台 参考源代码 部署 C#客户端  CAT支持的监控消息类型包括： Transaction        适合记录跨越系统边界的程序访问行为,比如远程调用，数据库调用，也适合执行时间较长的业务逻辑监控，Transaction用来记录一段代码的执行时间和次数。 Event">
+<meta property="og:image" content="https://chenyuqun.github.io/images/1.png">
+<meta property="og:image" content="https://chenyuqun.github.io/images/3.png">
+<meta property="og:image" content="https://chenyuqun.github.io/images/2.png">
+<meta property="og:updated_time" content="2017-06-09T02:32:07.000Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="CAT和ELK简单接入">
+<meta name="twitter:description" content="CAT监控参考 CAT(Central Application Tracking)是基于Java开发的实时应用监控平台 参考源代码 部署 C#客户端  CAT支持的监控消息类型包括： Transaction        适合记录跨越系统边界的程序访问行为,比如远程调用，数据库调用，也适合执行时间较长的业务逻辑监控，Transaction用来记录一段代码的执行时间和次数。 Event">
+<meta name="twitter:image" content="https://chenyuqun.github.io/images/1.png">
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Mist',
+    sidebar: {"position":"left","display":"post","offset":12,"offset_float":0,"b2t":false,"scrollpercent":false},
+    fancybox: true,
+    motion: true,
+    duoshuo: {
+      userId: '0',
+      author: '博主'
+    },
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+
+  <link rel="canonical" href="https://chenyuqun.github.io/2016/11/13/CAT和ELK简单接入/"/>
+
+
+
+
+
+  <title>CAT和ELK简单接入 | 大自在天</title>
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans">
+
+  
+
+
+
+
+
+  <script type="text/javascript">
+    var _hmt = _hmt || [];
+    (function() {
+      var hm = document.createElement("script");
+      hm.src = "https://hm.baidu.com/hm.js?2bcededf688a50ea3936ec98f29111f5";
+      var s = document.getElementsByTagName("script")[0];
+      s.parentNode.insertBefore(hm, s);
+    })();
+  </script>
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail ">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/"  class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">大自在天</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+      
+        <p class="site-subtitle"></p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br />
+            
+            首页
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-categories">
+          <a href="/categories" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-th"></i> <br />
+            
+            分类
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br />
+            
+            归档
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-tags"></i> <br />
+            
+            标签
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-commonweal">
+          <a href="/404.html" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-heartbeat"></i> <br />
+            
+            公益404
+          </a>
+        </li>
+      
+
+      
+    </ul>
+  
+
+  
+</nav>
+
+
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal " itemscope itemtype="http://schema.org/Article">
+    <link itemprop="mainEntityOfPage" href="https://chenyuqun.github.io/2016/11/13/CAT和ELK简单接入/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="Alex Chen">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/cyq.png">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="大自在天">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">CAT和ELK简单接入</h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2016-11-13T08:00:00+08:00">
+                2016-11-13
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+            <span class="post-category" >
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">分类于</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/技术/" itemprop="url" rel="index">
+                    <span itemprop="name">技术</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+              <span class="post-comments-count">
+                <span class="post-meta-divider">|</span>
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-comment-o"></i>
+                </span>
+                <a href="/2016/11/13/CAT和ELK简单接入/#comments" itemprop="discussionUrl">
+                  <span class="post-comments-count disqus-comment-count"
+                        data-disqus-identifier="2016/11/13/CAT和ELK简单接入/" itemprop="commentCount"></span>
+                </a>
+              </span>
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <h1 id="CAT监控"><a href="#CAT监控" class="headerlink" title="CAT监控"></a><a href="http://10.10.12.46:8080/cat/r" target="_blank" rel="external">CAT监控</a></h1><h2 id="参考"><a href="#参考" class="headerlink" title="参考"></a>参考</h2><ul>
+<li>CAT(Central Application Tracking)是基于Java开发的实时应用监控平台</li>
+<li>参考源代码 <a href="https://github.com/dianping/cat" target="_blank" rel="external">部署</a> <a href="https://github.com/ctripcorp/cat.net" target="_blank" rel="external">C#客户端</a></li>
+</ul>
+<h2 id="CAT支持的监控消息类型包括："><a href="#CAT支持的监控消息类型包括：" class="headerlink" title="CAT支持的监控消息类型包括："></a>CAT支持的监控消息类型包括：</h2><ul>
+<li><strong>Transaction</strong>        适合记录跨越系统边界的程序访问行为,比如远程调用，数据库调用，也适合执行时间较长的业务逻辑监控，Transaction用来记录一段代码的执行时间和次数。</li>
+<li><strong>Event</strong>       用来记录一件事发生的次数，比如记录系统异常，它和transaction相比缺少了时间的统计，开销比transaction要小。</li>
+<li><strong>Heartbeat</strong>        表示程序内定期产生的统计信息, 如CPU%, MEM%, 连接池状态, 系统负载等。</li>
+<li><strong>Metric</strong>     用于记录业务指标、指标可能包含对一个指标记录次数、记录平均值、记录总和，业务指标最低统计粒度为1分钟。</li>
+<li><p><strong>Trace</strong>     用于记录基本的trace信息，类似于log4j的info信息，这些信息仅用于查看一些相关信息</p>
+<p><strong>需要注意的是除了Transaction其他消息类型都是原子的不能再嵌套</strong></p>
+<h2 id="接入"><a href="#接入" class="headerlink" title="接入"></a>接入</h2></li>
+</ul>
+<ul>
+<li><p>服务端启动好后,在client端配置文件client.xml,文件路径/data/appdatas/cat/client.xml,server.ip,server.port写服务端的地址</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div></pre></td><td class="code"><pre><div class="line">&lt;?xml version=&quot;1.0&quot; encoding=&quot;utf-8&quot;?&gt;</div><div class="line">&lt;config mode=&quot;client&quot; enabled=&quot;true&quot; queue-size=&quot;123&quot;&gt;</div><div class="line">&lt;!--logEnabled enabled=&quot;true&quot;&gt;&lt;/logEnabled--&gt;</div><div class="line">&lt;!-- 配置Domain ID--&gt;</div><div class="line">&lt;domain id=&quot;Mango&quot; enabled=&quot;true&quot; max-message-size=&quot;1000&quot;/&gt;</div><div class="line">&lt;servers&gt;</div><div class="line">    &lt;!-- 配置CAT服务器地址--&gt;</div><div class="line">    &lt;server ip=&quot;10.2.6.98&quot; port=&quot;2280&quot; http-port=&quot;8080&quot;&gt;&lt;/server&gt;</div><div class="line">&lt;/servers&gt;</div><div class="line">&lt;/config&gt;</div></pre></td></tr></table></figure>
+</li>
+<li><p>调用CAT API埋点。示例代码</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div><div class="line">34</div><div class="line">35</div><div class="line">36</div><div class="line">37</div><div class="line">38</div><div class="line">39</div><div class="line">40</div><div class="line">41</div></pre></td><td class="code"><pre><div class="line">using System;</div><div class="line">using System.Collections.Generic;</div><div class="line">using System.Linq;</div><div class="line">using System.Text;</div><div class="line">using Org.Unidal.Cat.Message;</div><div class="line">using Org.Unidal.Cat;</div><div class="line">using System.Threading;</div><div class="line"></div><div class="line">namespace ConsoleApplication1</div><div class="line">&#123;</div><div class="line">    class Program</div><div class="line">    &#123;</div><div class="line">        static void Main(string[] args)</div><div class="line">        &#123;</div><div class="line">            ITransaction transaction = null; ;</div><div class="line">            try</div><div class="line">            &#123;</div><div class="line">                transaction = Cat.NewTransaction(&quot;Order&quot;, &quot;Cash&quot;);</div><div class="line"></div><div class="line">                // Do your business...</div><div class="line"></div><div class="line">                Cat.LogEvent(&quot;City&quot;, &quot;Shanghai&quot;);</div><div class="line">                transaction.Status = CatConstants.SUCCESS;</div><div class="line">            &#125;</div><div class="line">            catch (Exception ex)</div><div class="line">            &#123;</div><div class="line">                Cat.LogError(ex);</div><div class="line">                transaction.SetStatus(ex);</div><div class="line"></div><div class="line">                // You may need to re-throw exception ex out.</div><div class="line">            &#125;</div><div class="line">            finally</div><div class="line">            &#123;</div><div class="line">                transaction.Complete();</div><div class="line"></div><div class="line">                // 程序退出前睡一会儿。使得CAT客户端有时间发出最后一批消息到网络。</div><div class="line">                Thread.Sleep(1000);</div><div class="line">            &#125;</div><div class="line">        &#125;</div><div class="line">    &#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+</li>
+<li><p>在BaseController中定义拦截方法，注意一定要在action执行之后设置CAT的状态为Complete</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div><div class="line">34</div><div class="line">35</div><div class="line">36</div><div class="line">37</div><div class="line">38</div><div class="line">39</div><div class="line">40</div><div class="line">41</div><div class="line">42</div><div class="line">43</div><div class="line">44</div><div class="line">45</div><div class="line">46</div><div class="line">47</div><div class="line">48</div><div class="line">49</div><div class="line">50</div><div class="line">51</div><div class="line">52</div><div class="line">53</div><div class="line">54</div><div class="line">55</div><div class="line">56</div><div class="line">57</div><div class="line">58</div><div class="line">59</div><div class="line">60</div><div class="line">61</div><div class="line">62</div><div class="line">63</div><div class="line">64</div><div class="line">65</div><div class="line">66</div><div class="line">67</div><div class="line">68</div><div class="line">69</div><div class="line">70</div><div class="line">71</div><div class="line">72</div><div class="line">73</div></pre></td><td class="code"><pre><div class="line">using Mango.Infrastructure.Config;</div><div class="line">using Mango.Infrastructure.Log;</div><div class="line">using Mango.Infrastructure.Serialization;</div><div class="line">using System;</div><div class="line">using System.Collections;</div><div class="line">using System.Collections.Generic;</div><div class="line">using System.Linq;</div><div class="line">using System.Web;</div><div class="line">using System.Web.Mvc;</div><div class="line"></div><div class="line">namespace Mango.Online.BaseClass</div><div class="line">&#123;</div><div class="line">    public class BaseController : Controller</div><div class="line">    &#123;</div><div class="line">        private static ISerializer _iSerializer = new JsonSerializer();</div><div class="line">        private CatHelper _CatHelper = new CatHelper();</div><div class="line">        /// &lt;summary&gt;</div><div class="line">        /// Action执行前</div><div class="line">        /// &lt;/summary&gt;</div><div class="line">        /// &lt;param name=&quot;filterContext&quot;&gt;&lt;/param&gt;</div><div class="line">        protected override void OnActionExecuting(ActionExecutingContext filterContext)</div><div class="line">        &#123;</div><div class="line">            #region cat</div><div class="line">            var request = filterContext.RequestContext.HttpContext.Request;</div><div class="line">            var response = filterContext.RequestContext.HttpContext.Response;</div><div class="line"></div><div class="line">            string url = request.Url != null ? request.Url.ToString() : &quot;Empty&quot;;</div><div class="line">            string urlRefer = request.UrlReferrer != null ? request.UrlReferrer.ToString() : &quot;Entry&quot;;</div><div class="line">            string agent = request.UserAgent;</div><div class="line">            string statusCode = response.StatusCode.ToString();</div><div class="line"></div><div class="line">            Dictionary&lt;string, string&gt; spots = new Dictionary&lt;string, string&gt;();</div><div class="line">            spots.Add(&quot;URL&quot;, url);</div><div class="line">            spots.Add(&quot;URLRefer&quot;, urlRefer);</div><div class="line">            spots.Add(&quot;Agent&quot;, agent);</div><div class="line">            spots.Add(&quot;StatusCode&quot;, statusCode);</div><div class="line"></div><div class="line">            _CatHelper.PVTrace(&quot;URL&quot;, url, spots);</div><div class="line">            #endregion</div><div class="line">        &#125;</div><div class="line"></div><div class="line">        /// &lt;summary&gt;</div><div class="line">        /// Action执行后</div><div class="line">        /// &lt;/summary&gt;</div><div class="line">        /// &lt;param name=&quot;filterContext&quot;&gt;&lt;/param&gt;</div><div class="line">        protected override void OnActionExecuted(ActionExecutedContext filterContext)</div><div class="line">        &#123;</div><div class="line">            _CatHelper.TraceEnd();</div><div class="line">        &#125;</div><div class="line"></div><div class="line">        /// &lt;summary&gt;</div><div class="line">        /// Exception过滤</div><div class="line">        /// &lt;/summary&gt;</div><div class="line">        /// &lt;param name=&quot;filterContext&quot;&gt;&lt;/param&gt;</div><div class="line">        protected override void OnException(ExceptionContext filterContext)</div><div class="line">        &#123;</div><div class="line">            if (!filterContext.ExceptionHandled &amp;&amp; !ApplicationConfig.DebugModel)</div><div class="line">            &#123;</div><div class="line">                #region cat</div><div class="line">                var request = filterContext.RequestContext.HttpContext.Request;</div><div class="line">                string url = request.Url != null ? request.Url.ToString() : &quot;Empty&quot;;</div><div class="line">                _CatHelper.ExceptionTrace(&quot;Request&quot;, url, filterContext.Exception);</div><div class="line">                _CatHelper.TraceEnd();</div><div class="line">                #endregion</div><div class="line"></div><div class="line">                //Log&amp;Rdirect</div><div class="line">                LoggerHelper.Error(&quot;参数_filterContext&quot;, filterContext.Exception);</div><div class="line">                filterContext.HttpContext.Response.Redirect(&quot;~/Home/Error&quot;);</div><div class="line">            &#125;</div><div class="line">        &#125;</div><div class="line"></div><div class="line">    &#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+</li>
+</ul>
+<h1 id="ELK日志监控"><a href="#ELK日志监控" class="headerlink" title="ELK日志监控"></a><a href="http://10.10.12.46:5601/" target="_blank" rel="external">ELK日志监控</a></h1><h2 id="基本架构"><a href="#基本架构" class="headerlink" title="基本架构"></a>基本架构</h2><p><img src="/images/1.png" alt="ELK简单架构图片"></p>
+<ul>
+<li>分布式日志监控,目前采用Log4Net的UdpAppender和Log4J的TCP可以收集所有能与中控服务器通信机器的所有日志</li>
+<li>Elasticsearch负责搜索日志筛选数据,Logstash负责采集数据进行简单处理,Kibana负责用户界面展示和报表</li>
+<li>利用Log4NET的Appender来进行传输，所以配置和Log4NET原本配置很类似<h2 id="使用"><a href="#使用" class="headerlink" title="使用"></a>使用</h2></li>
+<li><p>先在站点配置日志输出的地方添加Appender</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div></pre></td><td class="code"><pre><div class="line">&lt;appender name=&quot;UdpAppender&quot; type=&quot;log4net.Appender.UdpAppender&quot;&gt;</div><div class="line">       &lt;param name=&quot;Encoding&quot; value=&quot;utf-8&quot; /&gt;</div><div class="line">       &lt;RemoteAddress value=&quot;10.10.12.46&quot; /&gt;</div><div class="line">       &lt;RemotePort value=&quot;5960&quot; /&gt;</div><div class="line">       &lt;layout type=&quot;log4net.Layout.PatternLayout&quot;&gt;</div><div class="line">           &lt;conversionPattern value=&quot;%level %date&#123;ISO8601&#125; %logger [%thread] [%C] [%property&#123;requestId&#125;] [%property&#123;log4net:HostName&#125;] %message %exception %newline&quot; /&gt;</div><div class="line">      &lt;/layout&gt;</div><div class="line">   &lt;/appender&gt;</div><div class="line"></div><div class="line">    &lt;logger name=&quot;LogStash&quot;&gt;</div><div class="line">      &lt;level value=&quot;Monitor&quot; /&gt;</div><div class="line">      &lt;appender-ref ref=&quot;UdpAppender&quot; /&gt;</div><div class="line">    &lt;/logger&gt;</div></pre></td></tr></table></figure>
+</li>
+<li><p>其中10.10.12.46地址是Logstash实例所在的地址,上线需要指定,在LoggerHelper中获取LogStash实例</p>
+<blockquote>
+<p>  private static readonly log4net.ILog LogStash = log4net.LogManager.GetLogger(“LogStash”);</p>
+</blockquote>
+</li>
+<li><p>目前是将Logstash的方法和本地写文件方法写在一起，也可以单独抽离</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div></pre></td><td class="code"><pre><div class="line">public static void Info(string msg, Exception ex = null)</div><div class="line">      &#123;</div><div class="line">          if (ex != null)</div><div class="line">          &#123;</div><div class="line">              LogInfo.Info(msg, ex);</div><div class="line">              LogStash.Info(msg, ex);</div><div class="line">          &#125;</div><div class="line">          else</div><div class="line">          &#123;</div><div class="line">              LogInfo.Info(msg);</div><div class="line">          &#125;</div><div class="line">      &#125;</div></pre></td></tr></table></figure>
+</li>
+<li><p>记录的内容根据写的pattern进行正则匹配,通过Logstash输出到elasticsearch实例进行索引</p>
+<h2 id="简单展示"><a href="#简单展示" class="headerlink" title="简单展示"></a>简单展示</h2></li>
+<li>索引后的数据保存在elasticsearch中,可以通过kibana进行关联,用户可以通过搜索框直接进行查询了,查询基于lucence基本语法,右上角的时间图标可以限定查询的时间范围<br>下图查看的是今天错误名称带有“火车票的”<br><img src="/images/3.png" alt="Kibana截图"></li>
+<li>Kibana的Visualize功能可以根据保存的语句生成你想要的图表,比如这个月的错误数量折线图<br><img src="/images/2.png" alt="报表"></li>
+</ul>
+
+      
+    </div>
+
+    <div>
+      
+        
+
+      
+    </div>
+
+    <div>
+      
+        
+
+      
+    </div>
+
+    <div>
+      
+        
+
+      
+    </div>
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/CAT/" rel="tag"># CAT</a>
+          
+            <a href="/tags/Elasticsearch/" rel="tag"># Elasticsearch</a>
+          
+            <a href="/tags/Logstash/" rel="tag"># Logstash</a>
+          
+            <a href="/tags/Kibana/" rel="tag"># Kibana</a>
+          
+            <a href="/tags/Big-Data/" rel="tag"># Big Data</a>
+          
+        </div>
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2016/11/04/创世纪/" rel="next" title="创世纪">
+                <i class="fa fa-chevron-left"></i> 创世纪
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2016/12/07/Docker Start/" rel="prev" title="Docker Start">
+                Docker Start <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+  <div class="comments" id="comments">
+    
+      <div id="disqus_thread">
+        <noscript>
+          Please enable JavaScript to view the
+          <a href="https://disqus.com/?ref_noscript">comments powered by Disqus.</a>
+        </noscript>
+      </div>
+    
+  </div>
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap" >
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+          <img class="site-author-image" itemprop="image"
+               src="/images/cyq.png"
+               alt="Alex Chen" />
+          <p class="site-author-name" itemprop="name">Alex Chen</p>
+           
+              <p class="site-description motion-element" itemprop="description">微斯人 吾谁与归</p>
+          
+        </div>
+        <nav class="site-state motion-element">
+
+          
+            <div class="site-state-item site-state-posts">
+              <a href="/archives">
+                <span class="site-state-item-count">3</span>
+                <span class="site-state-item-name">日志</span>
+              </a>
+            </div>
+          
+
+          
+            
+            
+            <div class="site-state-item site-state-categories">
+              <a href="/categories/index.html">
+                <span class="site-state-item-count">2</span>
+                <span class="site-state-item-name">分类</span>
+              </a>
+            </div>
+          
+
+          
+            
+            
+            <div class="site-state-item site-state-tags">
+              <a href="/tags/index.html">
+                <span class="site-state-item-count">7</span>
+                <span class="site-state-item-name">标签</span>
+              </a>
+            </div>
+          
+
+        </nav>
+
+        
+
+        <div class="links-of-author motion-element">
+          
+            
+              <span class="links-of-author-item">
+                <a href="https://github.com/chenyuqun" target="_blank" title="GitHub">
+                  
+                    <i class="fa fa-fw fa-github"></i>
+                  
+                  GitHub
+                </a>
+              </span>
+            
+              <span class="links-of-author-item">
+                <a href="http://weibo.com/u/3180114675" target="_blank" title="Weibo">
+                  
+                    <i class="fa fa-fw fa-weibo"></i>
+                  
+                  Weibo
+                </a>
+              </span>
+            
+              <span class="links-of-author-item">
+                <a href="http://douban.com/people/chenyuqun" target="_blank" title="Douban">
+                  
+                    <i class="fa fa-fw fa-heart"></i>
+                  
+                  Douban
+                </a>
+              </span>
+            
+              <span class="links-of-author-item">
+                <a href="http://www.zhihu.com/people/lan-yan-huo-shui-91" target="_blank" title="Zhihu">
+                  
+                    <i class="fa fa-fw fa-paper-plane"></i>
+                  
+                  Zhihu
+                </a>
+              </span>
+            
+          
+        </div>
+
+        
+        
+
+        
+        
+
+        
+
+
+      </section>
+
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#CAT监控"><span class="nav-number">1.</span> <span class="nav-text">CAT监控</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#参考"><span class="nav-number">1.1.</span> <span class="nav-text">参考</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#CAT支持的监控消息类型包括："><span class="nav-number">1.2.</span> <span class="nav-text">CAT支持的监控消息类型包括：</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#接入"><span class="nav-number">1.3.</span> <span class="nav-text">接入</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#ELK日志监控"><span class="nav-number">2.</span> <span class="nav-text">ELK日志监控</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#基本架构"><span class="nav-number">2.1.</span> <span class="nav-text">基本架构</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#使用"><span class="nav-number">2.2.</span> <span class="nav-text">使用</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#简单展示"><span class="nav-number">2.3.</span> <span class="nav-text">简单展示</span></a></li></ol></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
+      
+
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright" >
+  
+  &copy;  2016 - 
+  <span itemprop="copyrightYear">2017</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Alex Chen</span>
+</div>
+
+
+<div class="powered-by">
+  由 <a class="theme-link" href="https://hexo.io">Hexo</a> 强力驱动
+</div>
+
+<div class="theme-info">
+  主题 -
+  <a class="theme-link" href="https://github.com/iissnan/hexo-theme-next">
+    NexT.Mist
+  </a>
+</div>
+
+
+        
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+
+  
+  <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+
+  
+  <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.1.1"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.1.1"></script>
+
+
+
+  
+  
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.1"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.1"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.1.1"></script>
+
+
+
+  
+
+
+  
+
+    
+      <script id="dsq-count-scr" src="https://chenyuqun-github-io.disqus.com/count.js" async></script>
+    
+
+    
+      <script type="text/javascript">
+        var disqus_config = function () {
+          this.page.url = 'https://chenyuqun.github.io/2016/11/13/CAT和ELK简单接入/';
+          this.page.identifier = '2016/11/13/CAT和ELK简单接入/';
+          this.page.title = 'CAT和ELK简单接入';
+        };
+        var d = document, s = d.createElement('script');
+        s.src = 'https://chenyuqun-github-io.disqus.com/embed.js';
+        s.setAttribute('data-timestamp', '' + +new Date());
+        (d.head || d.body).appendChild(s);
+      </script>
+    
+
+  
+
+
+
+
+	
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>

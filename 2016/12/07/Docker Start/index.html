@@ -1,0 +1,980 @@
+<!doctype html>
+
+
+
+  
+
+
+<html class="theme-next mist use-motion" lang="zh-Hans">
+<head>
+  <meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+
+
+
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css" />
+
+
+
+
+  
+  
+  
+  
+
+  
+    
+    
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+    
+    
+    <link href="//fonts.googleapis.com/css?family=Lato:300,300italic,400,400italic,700,700italic&subset=latin,latin-ext" rel="stylesheet" type="text/css">
+  
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css" />
+
+<link href="/css/main.css?v=5.1.1" rel="stylesheet" type="text/css" />
+
+
+  <meta name="keywords" content="Docker,Linux," />
+
+
+
+
+
+
+
+
+  <link rel="shortcut icon" type="image/x-icon" href="/favicon.ico?v=5.1.1" />
+
+
+
+
+
+
+<meta name="description" content="Docker参考 Docker-从入门到实践 此篇学习笔记基于docker版本1.12.3  基本原理 Docker 使用 Google 公司推出的 Go 语言 进行开发实现，基于 Linux 内核的 cgroup，namespace，以及 AUFS 类的 Union FS 等技术，对进程进行封装隔离，属于操作系统层面的虚拟化技术。由于隔离的进程独立于宿主和其它的隔离的进程，因此也称其为容器。最初">
+<meta name="keywords" content="Docker,Linux">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Docker Start">
+<meta property="og:url" content="https://chenyuqun.github.io/2016/12/07/Docker Start/index.html">
+<meta property="og:site_name" content="大自在天">
+<meta property="og:description" content="Docker参考 Docker-从入门到实践 此篇学习笔记基于docker版本1.12.3  基本原理 Docker 使用 Google 公司推出的 Go 语言 进行开发实现，基于 Linux 内核的 cgroup，namespace，以及 AUFS 类的 Union FS 等技术，对进程进行封装隔离，属于操作系统层面的虚拟化技术。由于隔离的进程独立于宿主和其它的隔离的进程，因此也称其为容器。最初">
+<meta property="og:image" content="https://chenyuqun.github.io/2016/12/07/Docker%20Start/4.png">
+<meta property="og:image" content="https://chenyuqun.github.io/2016/12/07/Docker%20Start/5.png">
+<meta property="og:updated_time" content="2017-06-09T02:32:34.000Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Docker Start">
+<meta name="twitter:description" content="Docker参考 Docker-从入门到实践 此篇学习笔记基于docker版本1.12.3  基本原理 Docker 使用 Google 公司推出的 Go 语言 进行开发实现，基于 Linux 内核的 cgroup，namespace，以及 AUFS 类的 Union FS 等技术，对进程进行封装隔离，属于操作系统层面的虚拟化技术。由于隔离的进程独立于宿主和其它的隔离的进程，因此也称其为容器。最初">
+<meta name="twitter:image" content="https://chenyuqun.github.io/2016/12/07/Docker%20Start/4.png">
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Mist',
+    sidebar: {"position":"left","display":"post","offset":12,"offset_float":0,"b2t":false,"scrollpercent":false},
+    fancybox: true,
+    motion: true,
+    duoshuo: {
+      userId: '0',
+      author: '博主'
+    },
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+
+  <link rel="canonical" href="https://chenyuqun.github.io/2016/12/07/Docker Start/"/>
+
+
+
+
+
+  <title>Docker Start | 大自在天</title>
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans">
+
+  
+
+
+
+
+
+  <script type="text/javascript">
+    var _hmt = _hmt || [];
+    (function() {
+      var hm = document.createElement("script");
+      hm.src = "https://hm.baidu.com/hm.js?2bcededf688a50ea3936ec98f29111f5";
+      var s = document.getElementsByTagName("script")[0];
+      s.parentNode.insertBefore(hm, s);
+    })();
+  </script>
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail ">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/"  class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">大自在天</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+      
+        <p class="site-subtitle"></p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br />
+            
+            首页
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-categories">
+          <a href="/categories" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-th"></i> <br />
+            
+            分类
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br />
+            
+            归档
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-tags"></i> <br />
+            
+            标签
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-commonweal">
+          <a href="/404.html" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-heartbeat"></i> <br />
+            
+            公益404
+          </a>
+        </li>
+      
+
+      
+    </ul>
+  
+
+  
+</nav>
+
+
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal " itemscope itemtype="http://schema.org/Article">
+    <link itemprop="mainEntityOfPage" href="https://chenyuqun.github.io/2016/12/07/Docker Start/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="Alex Chen">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/cyq.png">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="大自在天">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">Docker Start</h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2016-12-07T20:30:00+08:00">
+                2016-12-07
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+            <span class="post-category" >
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">分类于</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/技术/" itemprop="url" rel="index">
+                    <span itemprop="name">技术</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+              <span class="post-comments-count">
+                <span class="post-meta-divider">|</span>
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-comment-o"></i>
+                </span>
+                <a href="/2016/12/07/Docker Start/#comments" itemprop="discussionUrl">
+                  <span class="post-comments-count disqus-comment-count"
+                        data-disqus-identifier="2016/12/07/Docker Start/" itemprop="commentCount"></span>
+                </a>
+              </span>
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <h1 id="Docker"><a href="#Docker" class="headerlink" title="Docker"></a>Docker</h1><h2 id="参考"><a href="#参考" class="headerlink" title="参考"></a>参考</h2><ul>
+<li><a href="https://www.gitbook.com/book/yeasy/docker_practice/details" target="_blank" rel="external">Docker-从入门到实践</a></li>
+<li>此篇学习笔记基于docker版本1.12.3</li>
+</ul>
+<h2 id="基本原理"><a href="#基本原理" class="headerlink" title="基本原理"></a>基本原理</h2><ul>
+<li><p>Docker 使用 Google 公司推出的 Go 语言 进行开发实现，基于 Linux 内核的 cgroup，namespace，以及 AUFS 类的 Union FS 等技术，<br>对进程进行封装隔离，属于操作系统层面的虚拟化技术。由于隔离的进程独立于宿主和其它的隔离的进程，因此也称其为容器。最初实现是基于 LXC，<br>从 0.7 以后开始去除 LXC，转而使用自行开发的 libcontainer，从 1.11 开始，则进一步演进为使用 runC 和 containerd。</p>
+</li>
+<li><p>和传统的虚拟机的差别<br><img src="4.png" alt="传统虚拟机"><br><img src="5.png" alt="DOcker"></p>
+</li>
+</ul>
+<h2 id="核心概念"><a href="#核心概念" class="headerlink" title="核心概念"></a>核心概念</h2><ul>
+<li>镜像Docker 镜像（Image），就相当于是一个 root 文件系统。比如官方镜像 ubuntu:14.04 就包含了完整的一套 Ubuntu 14.04 最小系统的 root 文件系统。镜像构建时候是分层构建，研究Dockerfile时候详细讨论。</li>
+<li>容器 镜像（Image）和容器（Container）的关系，就像是面向对象程序设计中的类和实例一样，镜像是静态的定义，容器是镜像运行时的实体。容器可以被创建、启动、停止、删除、暂停等。</li>
+<li>仓库 例如<a href="https://hub.docker.com/" target="_blank" rel="external">Docker Hub</a>,<a href="https://store.docker.com/" target="_blank" rel="external">Docker Store</a>等等.也可以利用Nexus Repository Manager建立私有仓库管理。</li>
+</ul>
+<h2 id="常用命令-以redis镜像myredis容器举例"><a href="#常用命令-以redis镜像myredis容器举例" class="headerlink" title="常用命令 (以redis镜像myredis容器举例)"></a>常用命令 (以redis镜像myredis容器举例)</h2><ul>
+<li>获取镜像  <blockquote>
+<p>docker pull redis</p>
+</blockquote>
+</li>
+<li>推送镜像  <blockquote>
+<p>docker push alex/redis:1.0</p>
+</blockquote>
+</li>
+<li>删除容器  <blockquote>
+<p>docker rm mynginx </p>
+</blockquote>
+</li>
+<li>删除镜像  <blockquote>
+<p>docker rmi redis </p>
+</blockquote>
+</li>
+<li>管理数据卷 <blockquote>
+<p>docker volumes ls(create/inspect/rm)</p>
+</blockquote>
+</li>
+<li>查看docker版本信息  <blockquote>
+<p>docker version</p>
+</blockquote>
+</li>
+<li>查看容器的日志  <blockquote>
+<p>docker logs myredis</p>
+</blockquote>
+</li>
+<li>登陆dockerhub账号  <blockquote>
+<p>docker login; docker logout</p>
+</blockquote>
+</li>
+<li>查看镜像历史  <blockquote>
+<p>docker history redis</p>
+</blockquote>
+</li>
+<li>暂停/启动容器所有进程  <blockquote>
+<p>docker unpause/pause myredis</p>
+</blockquote>
+</li>
+<li>查看所有运行的进程  <blockquote>
+<p>docker ps(查看所有docker进程 docker ps -a)</p>
+</blockquote>
+</li>
+<li>进入运行中的容器(不过我不知道什么用 基本被docker exec 取代)  <blockquote>
+<p>docker attach myredis</p>
+</blockquote>
+</li>
+<li>从Dockerfile构建镜像  <blockquote>
+<p>docker build dockerfile</p>
+</blockquote>
+</li>
+<li>提交镜像  <blockquote>
+<p>docker commit myredis</p>
+</blockquote>
+</li>
+<li>从宿主系统拷贝文件  <blockquote>
+<p>docker cp file.ext myredis:/path/to/file.ext  </p>
+</blockquote>
+</li>
+</ul>
+<p>从容器拷贝文件到宿主机  </p>
+<blockquote>
+<p>docker cp myredis:/path/to/file.ext</p>
+<ul>
+<li>查看容器详细信息<br>docker inspect myredis    </li>
+<li>新建容器<br>docker create anotherredis</li>
+<li>查看容器内的文件系统变化<br>docker diff myredis</li>
+<li>输出服务器上所有的docker及时事件<br>docker events</li>
+<li>在运行的docker容器中执行命令<br>docker exec -it myredis /bin/bash</li>
+<li>以TAR形式导出整个容器到本地文件系统<br>docker export myredis &gt; redis.tar  </li>
+</ul>
+</blockquote>
+<p>或者 </p>
+<blockquote>
+<p>docker export –output=”redis.tar” myredis</p>
+<ul>
+<li>列出所有镜像<br>docker images</li>
+<li>从TAR文件创建一个docker镜像<br>docker import redis.tar</li>
+<li>查看docker系统信息<br>docker info</li>
+<li>强制关闭容器 相当于直接发送kill -9 信号<br>docker kill myredis</li>
+<li>从TAR文件中加载镜像<br>docker load &lt; redis.tar</li>
+<li>管理docker网络<br>docker network ls;docker networrk create…</li>
+<li>查看docker集群节点<br>docker node ls </li>
+<li>重命名容器<br>docker rename myredis alexredis</li>
+<li>重启容器<br>docker restart myredis</li>
+<li>运行容器(实例化),如果没有这个镜像会试图从远端pull<br>docker run –name myredis -p 6380:6379 -v /data/redis:/data -d redis redis-server –appendonly yes </li>
+<li>查看容器端口相关<br>docker port myredis</li>
+<li>停止容器 和kill的区别就和linux直接kill和stop区别一样<br>docker stop myredis  </li>
+</ul>
+</blockquote>
+<p>(首先给容器发送一个TERM信号，让容器做一些退出前必须的保护性、安全性操作，然后让<br>容器自动停止运行，如果在一段时间内，容器还是没有停止，再进行kill -9，强行终止) </p>
+<ul>
+<li>Docker镜像TAR归档 <blockquote>
+<p>docker save redis：3.2.5 &gt; redis.tar</p>
+</blockquote>
+</li>
+<li>搜索dockerhub查询景象 <blockquote>
+<p>docker search redis</p>
+</blockquote>
+</li>
+<li>管理Docker Service(配合Docker Swarm )<blockquote>
+<p>docker service ls</p>
+</blockquote>
+</li>
+<li>启动容器 <blockquote>
+<p>docker start myredis</p>
+</blockquote>
+</li>
+<li>查看容易资源占用情况 <blockquote>
+<p>docker stats</p>
+</blockquote>
+</li>
+<li>Docker集群管理Swarm <blockquote>
+<p>docker swarm init</p>
+</blockquote>
+</li>
+<li>给本地镜像打标签 <blockquote>
+<p>docker tag redis redis:1.0</p>
+</blockquote>
+</li>
+<li>显示容器内运行的进程 <blockquote>
+<p>docker top myredis</p>
+</blockquote>
+</li>
+<li>更新容器的一些配置 <blockquote>
+<p>docker update –cpu-shares 512 -m 300M myredis mynginx</p>
+</blockquote>
+</li>
+<li>一直到这个容器停止才中止,并打印出退出码 <blockquote>
+<p>docker wait myredis</p>
+</blockquote>
+</li>
+</ul>
+<h2 id="常用镜像"><a href="#常用镜像" class="headerlink" title="常用镜像"></a>常用镜像</h2><h3 id="dockerui"><a href="#dockerui" class="headerlink" title="dockerui"></a><a href="https://github.com/kevana/ui-for-docker" target="_blank" rel="external">dockerui</a></h3><ul>
+<li>提供Docker UI管理界面 </li>
+<li>docker run -d -p 9000:9000 -v /var/run/docker.sock:/var/run/docker.sock uifd/ui-for-docker</li>
+<li>open your browser to http://<dockerd host="" ip="">:9000<h3 id="shipyad"><a href="#shipyad" class="headerlink" title="shipyad"></a><a href="https://shipyard-project.com/" target="_blank" rel="external">shipyad</a></h3></dockerd></li>
+<li>docker集群管理界面</li>
+<li>命令行部署 curl -sSL <a href="https://shipyard-project.com/deploy" target="_blank" rel="external">https://shipyard-project.com/deploy</a> | bash -s </li>
+<li>docker run –rm -v /var/run/docker.sock:/var/run/docker.sock shipyard/deploy start<h3 id="工具类-本地开发测试很不错"><a href="#工具类-本地开发测试很不错" class="headerlink" title="工具类,本地开发测试很不错"></a>工具类,本地开发测试很不错</h3></li>
+<li><a href="https://hub.docker.com/_/redis/" target="_blank" rel="external">Redis</a> docker run –name myredis -p 6380:6379 -v /data/redis:/data -d redis redis-server –appendonly yes</li>
+<li><a href="https://hub.docker.com/_/mysql/" target="_blank" rel="external">Mysql</a></li>
+<li><a href="https://hub.docker.com/_/mongo/" target="_blank" rel="external">MongoDB</a></li>
+<li><a href="https://hub.docker.com/_/nginx/" target="_blank" rel="external">Nginx</a></li>
+<li><a href="https://hub.docker.com/_/tomcat/" target="_blank" rel="external">Tomcat</a> 看了下Dockerfile,用的是openjdk,不知道有没有坑。<h3 id="Swarm"><a href="#Swarm" class="headerlink" title="Swarm"></a><a href="https://hub.docker.com/_/swarm/" target="_blank" rel="external">Swarm</a></h3></li>
+<li>官方的Docker的集群管理工具<h3 id="alpine"><a href="#alpine" class="headerlink" title="alpine"></a><a href="https://hub.docker.com/_/alpine/" target="_blank" rel="external">alpine</a></h3></li>
+<li>一个只有5MB的linux包,dockfile构建工具时候一个很好的依赖</li>
+</ul>
+
+      
+    </div>
+
+    <div>
+      
+        
+
+      
+    </div>
+
+    <div>
+      
+        
+
+      
+    </div>
+
+    <div>
+      
+        
+
+      
+    </div>
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/Docker/" rel="tag"># Docker</a>
+          
+            <a href="/tags/Linux/" rel="tag"># Linux</a>
+          
+        </div>
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2016/11/13/CAT和ELK简单接入/" rel="next" title="CAT和ELK简单接入">
+                <i class="fa fa-chevron-left"></i> CAT和ELK简单接入
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+  <div class="comments" id="comments">
+    
+      <div id="disqus_thread">
+        <noscript>
+          Please enable JavaScript to view the
+          <a href="https://disqus.com/?ref_noscript">comments powered by Disqus.</a>
+        </noscript>
+      </div>
+    
+  </div>
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap" >
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+          <img class="site-author-image" itemprop="image"
+               src="/images/cyq.png"
+               alt="Alex Chen" />
+          <p class="site-author-name" itemprop="name">Alex Chen</p>
+           
+              <p class="site-description motion-element" itemprop="description">微斯人 吾谁与归</p>
+          
+        </div>
+        <nav class="site-state motion-element">
+
+          
+            <div class="site-state-item site-state-posts">
+              <a href="/archives">
+                <span class="site-state-item-count">3</span>
+                <span class="site-state-item-name">日志</span>
+              </a>
+            </div>
+          
+
+          
+            
+            
+            <div class="site-state-item site-state-categories">
+              <a href="/categories/index.html">
+                <span class="site-state-item-count">2</span>
+                <span class="site-state-item-name">分类</span>
+              </a>
+            </div>
+          
+
+          
+            
+            
+            <div class="site-state-item site-state-tags">
+              <a href="/tags/index.html">
+                <span class="site-state-item-count">7</span>
+                <span class="site-state-item-name">标签</span>
+              </a>
+            </div>
+          
+
+        </nav>
+
+        
+
+        <div class="links-of-author motion-element">
+          
+            
+              <span class="links-of-author-item">
+                <a href="https://github.com/chenyuqun" target="_blank" title="GitHub">
+                  
+                    <i class="fa fa-fw fa-github"></i>
+                  
+                  GitHub
+                </a>
+              </span>
+            
+              <span class="links-of-author-item">
+                <a href="http://weibo.com/u/3180114675" target="_blank" title="Weibo">
+                  
+                    <i class="fa fa-fw fa-weibo"></i>
+                  
+                  Weibo
+                </a>
+              </span>
+            
+              <span class="links-of-author-item">
+                <a href="http://douban.com/people/chenyuqun" target="_blank" title="Douban">
+                  
+                    <i class="fa fa-fw fa-heart"></i>
+                  
+                  Douban
+                </a>
+              </span>
+            
+              <span class="links-of-author-item">
+                <a href="http://www.zhihu.com/people/lan-yan-huo-shui-91" target="_blank" title="Zhihu">
+                  
+                    <i class="fa fa-fw fa-paper-plane"></i>
+                  
+                  Zhihu
+                </a>
+              </span>
+            
+          
+        </div>
+
+        
+        
+
+        
+        
+
+        
+
+
+      </section>
+
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#Docker"><span class="nav-number">1.</span> <span class="nav-text">Docker</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#参考"><span class="nav-number">1.1.</span> <span class="nav-text">参考</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#基本原理"><span class="nav-number">1.2.</span> <span class="nav-text">基本原理</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#核心概念"><span class="nav-number">1.3.</span> <span class="nav-text">核心概念</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#常用命令-以redis镜像myredis容器举例"><span class="nav-number">1.4.</span> <span class="nav-text">常用命令 (以redis镜像myredis容器举例)</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#常用镜像"><span class="nav-number">1.5.</span> <span class="nav-text">常用镜像</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#dockerui"><span class="nav-number">1.5.1.</span> <span class="nav-text">dockerui</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#shipyad"><span class="nav-number">1.5.2.</span> <span class="nav-text">shipyad</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#工具类-本地开发测试很不错"><span class="nav-number">1.5.3.</span> <span class="nav-text">工具类,本地开发测试很不错</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Swarm"><span class="nav-number">1.5.4.</span> <span class="nav-text">Swarm</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#alpine"><span class="nav-number">1.5.5.</span> <span class="nav-text">alpine</span></a></li></ol></li></ol></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
+      
+
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright" >
+  
+  &copy;  2016 - 
+  <span itemprop="copyrightYear">2017</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Alex Chen</span>
+</div>
+
+
+<div class="powered-by">
+  由 <a class="theme-link" href="https://hexo.io">Hexo</a> 强力驱动
+</div>
+
+<div class="theme-info">
+  主题 -
+  <a class="theme-link" href="https://github.com/iissnan/hexo-theme-next">
+    NexT.Mist
+  </a>
+</div>
+
+
+        
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+
+  
+  <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+
+  
+  <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.1.1"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.1.1"></script>
+
+
+
+  
+  
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.1"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.1"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.1.1"></script>
+
+
+
+  
+
+
+  
+
+    
+      <script id="dsq-count-scr" src="https://chenyuqun-github-io.disqus.com/count.js" async></script>
+    
+
+    
+      <script type="text/javascript">
+        var disqus_config = function () {
+          this.page.url = 'https://chenyuqun.github.io/2016/12/07/Docker Start/';
+          this.page.identifier = '2016/12/07/Docker Start/';
+          this.page.title = 'Docker Start';
+        };
+        var d = document, s = d.createElement('script');
+        s.src = 'https://chenyuqun-github-io.disqus.com/embed.js';
+        s.setAttribute('data-timestamp', '' + +new Date());
+        (d.head || d.body).appendChild(s);
+      </script>
+    
+
+  
+
+
+
+
+	
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>
