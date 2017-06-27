@@ -100,12 +100,12 @@
 <meta property="og:url" content="https://chenyuqun.github.io/2017/03/20/JAVA线程池/index.html">
 <meta property="og:site_name" content="大自在天">
 <meta property="og:description" content="java线程池Java通过Executors提供四种线程池，分别为：newCachedThreadPool创建一个可缓存线程池，如果线程池长度超过处理需要，可灵活回收空闲线程，若无可回收，则新建线程。newFixedThreadPool 创建一个定长线程池，可控制线程最大并发数，超出的线程会在队列中等待。newScheduledThreadPool 创建一个定长线程池，支持定时及周期性任务执行。n">
-<meta property="og:image" content="https://chenyuqun.github.io/images/threadpool.jpg">
-<meta property="og:updated_time" content="2017-03-20T00:00:00.000Z">
+<meta property="og:image" content="https://chenyuqun.github.io/images/15.jpg">
+<meta property="og:updated_time" content="2017-06-27T09:27:23.000Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="JAVA线程池">
 <meta name="twitter:description" content="java线程池Java通过Executors提供四种线程池，分别为：newCachedThreadPool创建一个可缓存线程池，如果线程池长度超过处理需要，可灵活回收空闲线程，若无可回收，则新建线程。newFixedThreadPool 创建一个定长线程池，可控制线程最大并发数，超出的线程会在队列中等待。newScheduledThreadPool 创建一个定长线程池，支持定时及周期性任务执行。n">
-<meta name="twitter:image" content="https://chenyuqun.github.io/images/threadpool.jpg">
+<meta name="twitter:image" content="https://chenyuqun.github.io/images/15.jpg">
 
 
 
@@ -451,7 +451,7 @@ public void run() {
 <h2 id="向线程池提交任务"><a href="#向线程池提交任务" class="headerlink" title="向线程池提交任务"></a>向线程池提交任务</h2><p>我们可以使用execute提交的任务，但是execute方法没有返回值，所以无法判断任务是否被线程池执行成功。查看代码可知execute方法输入的任务是一个Runnable类的实例。<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div></pre></td><td class="code"><pre><div class="line">public void execute(Runnable command) &#123;</div><div class="line">        if (command == null)</div><div class="line">            throw new NullPointerException();</div><div class="line">        int c = ctl.get();</div><div class="line">		//如果线程数小于基本线程数，则创建线程并执行当前任务 </div><div class="line">        if (workerCountOf(c) &lt; corePoolSize) &#123;</div><div class="line">            if (addWorker(command, true))</div><div class="line">                return;</div><div class="line">            c = ctl.get();</div><div class="line">        &#125;</div><div class="line">		//如线程数大于等于基本线程数或线程创建失败，则将当前任务放到工作队列中。</div><div class="line">		//如果线程池不处于运行中或任务无法放入队列，并且当前线程数量小于最大允许的线程数量，则创建一个线程执行任务。</div><div class="line">        if (isRunning(c) &amp;&amp; workQueue.offer(command)) &#123;</div><div class="line">            int recheck = ctl.get();</div><div class="line">            if (! isRunning(recheck) &amp;&amp; remove(command))</div><div class="line">                reject(command);</div><div class="line">            else if (workerCountOf(recheck) == 0)</div><div class="line">                addWorker(null, false);</div><div class="line">        &#125;</div><div class="line">        else if (!addWorker(command, false))</div><div class="line">            reject(command);</div><div class="line">    &#125;</div></pre></td></tr></table></figure></p>
 <p>由于ThreadPoolExecutor继承了AbstractExecutorService,还可以用里面的submit方法提交任务<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div></pre></td><td class="code"><pre><div class="line">public Future&lt;?&gt; submit(Runnable task) &#123;</div><div class="line">        if (task == null) throw new NullPointerException();</div><div class="line">        RunnableFuture&lt;Void&gt; ftask = newTaskFor(task, null);</div><div class="line">        execute(ftask);</div><div class="line">        return ftask;</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    public &lt;T&gt; Future&lt;T&gt; submit(Runnable task, T result) &#123;</div><div class="line">        if (task == null) throw new NullPointerException();</div><div class="line">        RunnableFuture&lt;T&gt; ftask = newTaskFor(task, result);</div><div class="line">        execute(ftask);</div><div class="line">        return ftask;</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    public &lt;T&gt; Future&lt;T&gt; submit(Callable&lt;T&gt; task) &#123;</div><div class="line">        if (task == null) throw new NullPointerException();</div><div class="line">        RunnableFuture&lt;T&gt; ftask = newTaskFor(task);</div><div class="line">        execute(ftask);</div><div class="line">        return ftask;</div><div class="line">    &#125;</div></pre></td></tr></table></figure></p>
 <p>它会返回一个future,那么我们可以通过这个future来判断任务是否执行成功，通过future的get方法来获取返回值，get方法会阻塞住直到任务完成，而使用get(long timeout, TimeUnit unit)方法则会阻塞一段时间后立即返回，这时有可能任务没有执行完。</p>
-<h2 id="线程池的工作流程"><a href="#线程池的工作流程" class="headerlink" title="线程池的工作流程"></a>线程池的工作流程</h2><p><img src="/images/threadpool.jpg" alt="线程池工作流程"><br>从上图我们可以看出，当提交一个新任务到线程池时，线程池的处理流程如下：</p>
+<h2 id="线程池的工作流程"><a href="#线程池的工作流程" class="headerlink" title="线程池的工作流程"></a>线程池的工作流程</h2><p><img src="/images/15.jpg" alt="线程池工作流程"><br>从上图我们可以看出，当提交一个新任务到线程池时，线程池的处理流程如下：</p>
 <ul>
 <li>首先线程池判断基本线程池是否已满？没满，创建一个工作线程来执行任务。满了，则进入下个流程。</li>
 <li>其次线程池判断工作队列是否已满？没满，则将新提交的任务存储在工作队列里。满了，则进入下个流程。</li>
@@ -474,7 +474,8 @@ public void run() {
 <li>taskCount：线程池需要执行的任务数量。</li>
 <li>completedTaskCount：线程池在运行过程中已完成的任务数量。小于或等于taskCount。</li>
 <li>largestPoolSize：线程池曾经创建过的最大线程数量。通过这个数据可以知道线程池是否满过。如等于线程池的最大大小，则表示线程池曾经满了。</li>
-<li>getPoolSize:线程池的线程数量。如果线程池不销毁的话，池里的线程不会自动销毁，所以这个大小只增不+ getActiveCount：获取活动的线程数。<br>通过扩展线程池进行监控。通过继承线程池并重写线程池的beforeExecute，afterExecute和terminated方法，我们可以在任务执行前，执行后和线程池关闭前干一些事情。如监控任务的平均执行时间，最大执行时间和最小执行时间等。这几个方法在线程池里是空方法。如：<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">protected void beforeExecute(Thread t, Runnable r) &#123; &#125;</div></pre></td></tr></table></figure></li>
+<li>getPoolSize:线程池的线程数量。如果线程池不销毁的话，池里的线程不会自动销毁，所以这个大小只增不+ getActiveCount：获取活动的线程数。<br>通过扩展线程池进行监控。通过继承线程池并重写线程池的beforeExecute，afterExecute和terminated方法，我们可以在任务执行前，执行后和线程池关闭前干一些事情。如监控任务的平均执行时间，最大执行时间和最小执行时间等。这几个方法在线程池里是空方法。如：<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">protected void beforeExecute(Thread t, Runnable r) &#123; &#125;</div></pre></td></tr></table></figure>
+</li>
 </ol>
 
       
@@ -522,8 +523,8 @@ public void run() {
         <div class="post-nav">
           <div class="post-nav-next post-nav-item">
             
-              <a href="/2016/12/07/Docker Start/" rel="next" title="Docker Start">
-                <i class="fa fa-chevron-left"></i> Docker Start
+              <a href="/2017/02/28/HashMap原理分析/" rel="next" title="HashMap原理分析">
+                <i class="fa fa-chevron-left"></i> HashMap原理分析
               </a>
             
           </div>
@@ -609,7 +610,7 @@ public void run() {
           
             <div class="site-state-item site-state-posts">
               <a href="/archives">
-                <span class="site-state-item-count">4</span>
+                <span class="site-state-item-count">5</span>
                 <span class="site-state-item-name">日志</span>
               </a>
             </div>
@@ -631,7 +632,7 @@ public void run() {
             
             <div class="site-state-item site-state-tags">
               <a href="/tags/index.html">
-                <span class="site-state-item-count">10</span>
+                <span class="site-state-item-count">12</span>
                 <span class="site-state-item-name">标签</span>
               </a>
             </div>
